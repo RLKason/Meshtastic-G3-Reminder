@@ -2,11 +2,117 @@
 <html>
 <head>
     <title>Meshtastic G3 Reminder</title>
-</head>
-<body style="font-family: Arial; text-align:center; margin-top:100px;">
-    <h1>Meshtastic G3 Reminder</h1>
-    <p id="status">Checking for releases...</p>
 
-    <script src="script.js"></script>
+    <style>
+        body{
+            background:#1b1b1b;
+            color:white;
+            font-family:Arial;
+            text-align:center;
+            margin-top:100px;
+        }
+
+        #status{
+            font-size:24px;
+            margin-top:20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Meshtastic G3 Reminder</h1>
+
+    <div id="status">Waiting for notification permission...</div>
+
+    <script>
+        const statusText = document.getElementById("status");
+
+        const shopURL = "https://shop.uniteng.com/shop-2/";
+
+        let alreadyNotified = false;
+
+        async function checkWebsite() {
+
+            try {
+
+                statusText.innerText = "Checking website for G3...";
+
+                const response = await fetch(
+                    "https://api.allorigins.win/raw?url=" +
+                    encodeURIComponent(shopURL)
+                );
+
+                const html = await response.text();
+
+                // Detects G3 anywhere on the page
+                if (html.includes("G3")) {
+
+                    statusText.innerText =
+                        "🔥 G3 FOUND ON THE WEBSITE 🔥";
+
+                    document.body.style.background = "#000";
+                    document.body.style.color = "lime";
+
+                    if (!alreadyNotified) {
+
+                        alreadyNotified = true;
+
+                        new Notification("G3 FOUND!", {
+                            body: "The Uniteng shop mentions G3."
+                        });
+
+                        // Alarm sound
+                        const audio = new Audio(
+                            "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+                        );
+
+                        audio.loop = true;
+                        audio.play();
+
+                        // Open website automatically
+                        window.open(shopURL, "_blank");
+                    }
+
+                } else {
+
+                    statusText.innerText =
+                        "Still waiting for G3...";
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                statusText.innerText =
+                    "Error checking website.";
+            }
+        }
+
+        async function startNotifications() {
+
+            const permission =
+                await Notification.requestPermission();
+
+            if (permission === "granted") {
+
+                statusText.innerText =
+                    "Thank you, Due to AI it might take long.";
+
+                checkWebsite();
+
+                // Check every 20 seconds
+                setInterval(checkWebsite, 20000);
+
+            } else {
+
+                statusText.innerText =
+                    "Notifications were denied.";
+            }
+        }
+
+        startNotifications();
+    </script>
+
 </body>
 </html>
